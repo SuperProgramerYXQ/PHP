@@ -17,7 +17,7 @@ class Wheel
      */
     public function create()
     {
-        return '轮子';
+        echo '轮子做好了<br>';
     }
 }
 
@@ -43,6 +43,7 @@ class Car
 //        $wheel = $this->wheel;
         // 拿到轮子
         $this->wheel->create();
+        echo '拿到轮子了现在具备跑的能力<br>';
         // 拥有了跑的能力
     }
 
@@ -66,6 +67,7 @@ class Human
     public function drive()
     {
         $this->car->run();
+        echo '拿到车子了<br>';
     }
 }
 
@@ -75,8 +77,45 @@ class Human
  */
 class IOC
 {
+    protected static $registry = array();
+
+    /**
+     * 绑定
+     * @param $key
+     * @param callable $resolver
+     */
     public static function bind($key,Callable $resolver)
     {
+        static::$registry[$key] = $resolver;
+    }
+
+    /**
+     * 生产类
+     * @param $key
+     * @return mixed
+     */
+    public static function make($key)
+    {
+        if (isset(static::$registry[$key])) {
+            $resolver = static::$registry[$key];
+            return $resolver();
+        }
 
     }
 }
+
+
+IOC::bind('wheel',function (){
+    return new Wheel();
+});
+IOC::bind('car',function (){
+    return new Car(IOC::make('wheel'));
+});
+IOC::bind('human',function (){
+    return new Human(IOC::make('car'));
+});
+
+
+$superman = IOC::make('human');
+
+$superman->drive();
